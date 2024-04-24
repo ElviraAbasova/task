@@ -1,16 +1,17 @@
-import { users } from "./baseURL.js";
-import { getDatas, deleteData, postDatas } from "./requests.js";
+import { User } from "./baseURL.js";
+import { getDatas, deleteData, postDatas, getDataId } from "./requests.js";
 
 const tbody = document.querySelector("tbody");
 const getdata = document.querySelector(".getdata");
 const inputName = document.querySelector(".inputName");
 const inputSurname = document.querySelector(".inputSurname");
-const inputAge = document.querySelector(".inutpAge");
+const inputAge = document.querySelector(".inputAge");
 const saveBtn = document.querySelector(".saveBtn");
 const deletebtn = document.querySelector(".deletebtn");
-
+const modal = document.querySelector(".modal-body");
+                  
 async function createTable() {
-  let data = await getDatas(users);
+  let data = await getDatas(User);
   tbody.innerHTML = "";
 
   data.forEach((element) => {
@@ -21,15 +22,47 @@ async function createTable() {
     const tdAge = document.createElement("td");
     const tdButton = document.createElement("td");
     const tdDelete= document.createElement("button");
+    const tdEdit= document.createElement("button");
+
+
     tdId.textContent = element.id;
     tdName.textContent = element.name;
     tdLastname.textContent = element.surname;
     tdAge.textContent = element.age;
     tdDelete.textContent = "X";
+    tdEdit.textContent="Edit"
+    tdEdit.setAttribute("data-bs-toggle","modal")
+    tdEdit.setAttribute("data-bs-target","#exampleModal")
+    tdEdit.setAttribute("data",element.id)
+
+    tdEdit.addEventListener("click", async (e)=>{
+      let edit = await getDataId(User,e.target.getAttribute("data"));
+         modal.innerHTML = `
+        <div class="modal-body">
+          <label for=""  >Name</label>
+          <br>
+          <input class="editName" value =${edit.name} type="text">
+          <br>
+          <label for="">Lastanme</label>
+          <br>
+          <input class="editSurname" value =${edit.surname} type="text">
+          <br>
+          <label for="">Age</label>
+          <br>
+          <input class="editAge" type="number" value =${edit.age}>
+        </div>
+    `
+    //  saveBtn.addEventListener("click",()=>{
+    //   element.name = edit.name
+    //  })
+    })
+    tdButton.append(tdDelete,tdEdit);
+    tr.append(tdId, tdName, tdLastname, tdAge, tdButton);
+    tbody.append(tr);
 
     tdDelete.setAttribute("data", element.id);
     tdDelete.addEventListener("click", (e) => {
-      deleteData(users, e.target.getAttribute("data"));
+      deleteData(User, e.target.getAttribute("data"));
       e.target.parentElement.parentElement.remove();
     });
 
@@ -39,23 +72,15 @@ async function createTable() {
     });
     
     async function deleteAll() {
-      const data = await getDatas(users);
+      const data = await getDatas(User);
       data.forEach(async (user) => {
-        await deleteData(users, user.id);
+        await deleteData(User, user.id);
       });
     }
     
 
-    tdButton.append(tdDelete);
-    tr.append(tdId, tdName, tdLastname, tdAge, tdButton);
-    tbody.append(tr);
   });
 }
-
-
-
-
-
 
 getdata.addEventListener("click", async (e) => {
   createTable();
@@ -63,10 +88,9 @@ getdata.addEventListener("click", async (e) => {
 
 saveBtn.addEventListener("click", async (e) => {
   e.preventDefault;
-
   let obj = {};
   obj.name = inputName.value;
   obj.surname = inputSurname.value;
   obj.age = inputAge.value;
-  postDatas(users, obj);
+  postDatas(User, obj);
 });
